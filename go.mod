@@ -3,10 +3,12 @@ module openai-slack-example
 go 1.19
 
 require (
+	github.com/PullRequestInc/go-gpt3 v1.1.11
 	github.com/alexflint/go-arg v1.4.3
 	github.com/dlclark/regexp2 v1.8.0
 	github.com/samber/lo v1.37.0
 	github.com/stretchr/testify v1.7.0
+	golang.org/x/net v0.0.0-20190628185345-da137c7871d7
 )
 
 require (

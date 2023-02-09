@@ -1,9 +1,12 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
+	"os/signal"
 
+	"openai-slack-example/gpt3"
 	"openai-slack-example/tokenizer"
 
 	"github.com/alexflint/go-arg"
@@ -24,22 +27,29 @@ func main() {
 }
 
 func run(cfg *config) error {
-	encoder, err := tokenizer.NewEncoder()
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer cancel()
+
+	_, err := tokenizer.NewEncoder()
 	if err != nil {
 		return err
 	}
 
-	str := "This is an example sentence to try encoding out on!"
+	client := gpt3.NewClient(cfg.AzureOpenAIEndpoint, cfg.AzureOpenAIKey, "text-002")
 
-	encoded, err := encoder.Encode(str)
+	resp, err := client.Completion(ctx, gpt3.CompletionRequest{
+		Prompt:    []string{"The first thing you should know about javascript is"},
+		MaxTokens: gpt3.IntPtr(30),
+		Stop:      []string{"."},
+		Echo:      true,
+	})
+
 	if err != nil {
 		return err
 	}
 
-	fmt.Println("We can look at each token and what it represents:")
-	for _, token := range encoded {
-		fmt.Printf("%d -- %s\n", token, encoder.Decode([]int{token}))
-	}
+	fmt.Printf("Response: %s\n", resp.Choices[0].Text)
+
 	return nil
 }
 
