@@ -241,8 +241,8 @@ func (c *client) newRequest(ctx context.Context, method, path string, payload in
 	if err != nil {
 		return nil, err
 	}
-	url := fmt.Sprintf("%s%s?api-version=%s", c.endpoint, path, c.apiVersion)
-	req, err := http.NewRequestWithContext(ctx, method, url, bodyReader)
+	reqUrl := fmt.Sprintf("%s%s?api-version=%s", c.endpoint, path, c.apiVersion)
+	req, err := http.NewRequestWithContext(ctx, method, reqUrl, bodyReader)
 	if err != nil {
 		return nil, err
 	}
