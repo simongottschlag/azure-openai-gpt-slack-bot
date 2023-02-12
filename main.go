@@ -7,8 +7,8 @@ import (
 	"os/signal"
 	"strings"
 
-	"openai-slack-example/gpt3"
-	"openai-slack-example/tokenizer"
+	"github.com/simongottschlag/azure-openai-gpt-slack-bot/internal/gpt3"
+	"github.com/simongottschlag/azure-openai-gpt-slack-bot/internal/tokenizer"
 
 	"github.com/alexflint/go-arg"
 	"github.com/shomali11/slacker"
