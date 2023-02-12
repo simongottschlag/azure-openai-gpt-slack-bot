@@ -57,7 +57,7 @@ func run(cfg *config) error {
 				prompts, err = slackThreadContent(botCtx)
 				if err != nil {
 					fmt.Fprintf(os.Stderr, "slack thread content error: %v\n", err)
-					response.ReportError(err)
+					response.ReportError(err, slacker.WithThreadError(true))
 					return
 				}
 			}
@@ -65,7 +65,7 @@ func run(cfg *config) error {
 			completion, err := gptCompletion(botCtx.Context(), gptClient, prompts, cfg.OpenAIDeploymentName)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "completion error: %v\n", err)
-				response.ReportError(err)
+				response.ReportError(err, slacker.WithThreadError(true))
 				return
 			}
 
@@ -116,13 +116,13 @@ func gptCompletion(ctx context.Context, client gpt3.Client, prompts []string, de
 		return "", err
 	}
 	var prompt strings.Builder
+	fmt.Fprintf(&prompt, "You are responding to an end user in Slack. Please format accordingly.\nContext from the end user:\n")
 	for _, p := range prompts {
 		fmt.Fprintf(&prompt, "%s\n", p)
 	}
 	resp, err := client.Completion(ctx, gpt3.CompletionRequest{
 		Prompt:    []string{prompt.String()},
 		MaxTokens: maxTokens,
-		Stop:      []string{"."},
 		Echo:      false,
 		N:         gpt3.ToPtr(1),
 	})
@@ -149,7 +149,8 @@ func calculateMaxTokens(prompts []string, deploymentName string) (*int, error) {
 		return nil, err
 	}
 
-	totalTokens := 0
+	// start at 100 since the encoder at times doesn't get it exactly correct
+	totalTokens := 100
 	for _, prompt := range prompts {
 		tokens, err := encoder.Encode(prompt)
 		if err != nil {
@@ -168,11 +169,6 @@ type config struct {
 	OpenAIDeploymentName string `arg:"--openai-deployment-name,env:OPENAI_DEPLOYMENT_NAME" default:"text-003" help:"The deployment name used for the model in OpenAI service"`
 	SlackAppToken        string `arg:"--slack-app-token,env:SLACK_APP_TOKEN,required" help:"The Slack app token"`
 	SlackBotToken        string `arg:"--slack-bot-token,env:SLACK_BOT_TOKEN,required" help:"The Slack bot token"`
-	// SlackAppID             string `arg:"--slack-app-id,env:SLACK_APP_ID,required" help:"The Slack app ID"`
-	// SlackClientID          string `arg:"--slack-client-id,env:SLACK_CLIENT_ID,required" help:"The Slack client ID"`
-	// SlackClientSecret      string `arg:"--slack-client-secret,env:SLACK_CLIENT_SECRET,required" help:"The Slack client secret"`
-	// SlackSigningKey        string `arg:"--slack-signing-key,env:SLACK_SIGNING_KEY,required" help:"The Slack signing key"`
-	// SlackVerificationToken string `arg:"--slack-verification-token,env:SLACK_VERIFICATION_TOKEN,required" help:"The Slack verification token"`
 }
 
 func newConfig(args []string) (*config, error) {
