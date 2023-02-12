@@ -62,7 +62,9 @@ func run(cfg *config) error {
 				}
 			}
 
-			completion, err := gptCompletion(botCtx.Context(), gptClient, prompts, cfg.OpenAIDeploymentName)
+			user := botCtx.Event().UserName
+
+			completion, err := gptCompletion(botCtx.Context(), gptClient, prompts, cfg.OpenAIDeploymentName, user)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "completion error: %v\n", err)
 				response.ReportError(err, slacker.WithThreadError(true))
@@ -110,13 +112,13 @@ func slackThreadContent(botCtx slacker.BotContext) ([]string, error) {
 	return messages, nil
 }
 
-func gptCompletion(ctx context.Context, client gpt3.Client, prompts []string, deploymentName string) (string, error) {
+func gptCompletion(ctx context.Context, client gpt3.Client, prompts []string, deploymentName string, user string) (string, error) {
 	maxTokens, err := calculateMaxTokens(prompts, deploymentName)
 	if err != nil {
 		return "", err
 	}
 	var prompt strings.Builder
-	fmt.Fprintf(&prompt, "You are responding to an end user in Slack. Please format accordingly.\nContext from the end user:\n")
+	fmt.Fprintf(&prompt, "You are a Slack Bot responding to an end user in Slack. Please format all text to make sure it looks good in Slack.\nContext from the end user named %s:\n", user)
 	for _, p := range prompts {
 		fmt.Fprintf(&prompt, "%s\n", p)
 	}
