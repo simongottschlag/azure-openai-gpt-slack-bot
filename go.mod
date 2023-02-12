@@ -1,4 +1,4 @@
-module openai-slack-example
+module github.com/simongottschlag/azure-openai-gpt-slack-bot
 
 go 1.19
 
